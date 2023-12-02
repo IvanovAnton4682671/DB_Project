@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users_core',
+    'music_core',
+    'music_links_core',
 ]
 
 MIDDLEWARE = [
@@ -75,10 +78,34 @@ WSGI_APPLICATION = 'Music_Assistant.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'users',
+        'USER': 'root',
+        'PASSWORD': '4682671',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    },
+    'music_mongodb': {
+        'ENGINE': 'djongo',
+        'NAME': 'music',
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/',
+        },
+    },
+    'links_mongodb': {
+        'ENGINE': 'djongo',
+        'NAME': 'links',
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/',
+        },
+    },
 }
+
+
+# роутер для управления базами данных
+DATABASE_ROUTERS = ['Music_Assistant.routers.MultiDBRouter']
 
 
 # Password validation
@@ -103,9 +130,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
