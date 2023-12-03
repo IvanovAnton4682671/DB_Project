@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    {% if links %}
+        {% for link in links %}
+            <link rel="stylesheet" href="{{ link }}">
+        {% endfor %}
+    {% endif %}
+    {% if scripts %}
+        {% for script in scripts %}
+            <script src="{{ script }}" defer></script>
+        {% endfor %}
+    {% endif %}
+    <title>{{ title }}</title>
+</head>
+<body>
+    {% if videos %}
+        {% for video in videos %}
+            <video autoplay muted loop>
+                <source src="{{ video }}" type="video/mp4">
+            </video>
+        {% endfor %}
+    {% endif %}
+    {% autoescape off %}
+    {{ all_data }}
+    {% endautoescape %}
+</body>
+</html>
