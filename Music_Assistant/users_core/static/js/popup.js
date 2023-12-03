@@ -1,4 +1,3 @@
-{% load static %}
 var button_show = document.getElementById('showPopup');
 var button_aut = document.getElementById('showAut');
 var button_reg = document.getElementById('showReg');
@@ -51,12 +50,12 @@ var aut_togPas = document.getElementById('aut-togglePassword');
 reg_togPas.addEventListener('click', function() {
   if (reg_passInp.type === 'password') {
     reg_passInp.type = 'text';
-    reg_togPas.style.background = 'url("{% static 'images/eye1.svg' %}") no-repeat center';
+    reg_togPas.style.background = 'url("eye1.svg") no-repeat center';
     reg_togPas.style.backgroundSize = 'contain';
   }
   else {
     reg_passInp.type = 'password';
-    reg_togPas.style.background = 'url("{% static 'images/eye2.svg' %}") no-repeat center';
+    reg_togPas.style.background = 'url("eye2.svg") no-repeat center';
     reg_togPas.style.backgroundSize = 'contain';
   }
 });
@@ -64,12 +63,66 @@ reg_togPas.addEventListener('click', function() {
 aut_togPas.addEventListener('click', function() {
   if (aut_passInp.type === 'password') {
     aut_passInp.type = 'text';
-    aut_togPas.style.background = 'url("{% static 'images/eye1.svg' %}") no-repeat center';
+    aut_togPas.style.background = 'url("eye1.svg") no-repeat center';
     aut_togPas.style.backgroundSize = 'contain';
   }
   else {
     aut_passInp.type = 'password';
-    aut_togPas.style.background = 'url("{% static 'images/eye2.svg' %}") no-repeat center';
+    aut_togPas.style.background = 'url("eye2.svg") no-repeat center';
     aut_togPas.style.backgroundSize = 'contain';
+  }
+});
+
+var nick = document.getElementById('nickname');
+var regE = document.getElementById('regEmail');
+var passSig = document.getElementById('reg-passwordInput');
+var butSig = document.getElementById('signUp');
+var autE = document.getElementById('autEmail');
+var passLog = document.getElementById('aut-passwordInput');
+var butLog = document.getElementById('logIn');
+
+butSig.addEventListener('click', function(event) {
+  if (nick.value === '' || regE.value === '' || passSig.value === '') {
+    if (nick.value === '') {
+      nick.style.border = '2px solid yellow';
+    }
+    else {
+      nick.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (regE.value === '') {
+      regE.style.border = '2px solid yellow';
+    }
+    else {
+      regE.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (passSig.value === '') {
+      passSig.style.border = '2px solid yellow';
+    }
+    else {
+      passSig.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    alert('Пожалуйста, не оставляйте поля пустыми!');
+    event.preventDefault();
+    return;
+  }
+});
+
+butLog.addEventListener('click', function(event) {
+  if (autE.value === '' || passLog.value === '') {
+    if (autE.value === '') {
+      autE.style.border = '2px solid yellow';
+    }
+    else {
+      autE.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (passLog.value === '') {
+      passLog.style.border = '2px solid yellow';
+    }
+    else {
+      passLog.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    alert('Пожалуйста, не оставляйте поля пустыми!');
+    event.preventDefault();
+    return;
   }
 });
