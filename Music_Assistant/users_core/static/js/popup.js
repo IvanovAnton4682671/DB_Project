@@ -7,6 +7,14 @@ var form_reg = document.getElementById('form-reg');
 var form_aut = document.getElementById('form-aut');
 var dop_div = document.getElementById('dop-div');
 
+var nick = document.getElementById('nickname');
+var regE = document.getElementById('regEmail');
+var passSig = document.getElementById('reg-passwordInput');
+var butSig = document.getElementById('signUp');
+var autE = document.getElementById('autEmail');
+var passLog = document.getElementById('aut-passwordInput');
+var butLog = document.getElementById('logIn');
+
 button_show.addEventListener('click', function(event) {
   popup.style.display = 'block';
   popup.style.animation = 'trans 0.3s forwards';
@@ -50,36 +58,36 @@ var aut_togPas = document.getElementById('aut-togglePassword');
 reg_togPas.addEventListener('click', function() {
   if (reg_passInp.type === 'password') {
     reg_passInp.type = 'text';
-    reg_togPas.style.background = 'url("eye1.svg") no-repeat center';
-    reg_togPas.style.backgroundSize = 'contain';
+    reg_togPas.classList.remove('togglePassword');
+    reg_togPas.classList.add('togglePassword-2');
+    //reg_togPas.style.background = 'url("eye1.svg") no-repeat center';
+    //reg_togPas.style.backgroundSize = 'contain';
   }
   else {
     reg_passInp.type = 'password';
-    reg_togPas.style.background = 'url("eye2.svg") no-repeat center';
-    reg_togPas.style.backgroundSize = 'contain';
+    reg_togPas.classList.remove('togglePassword-2');
+    reg_togPas.classList.add('togglePassword');
+    //reg_togPas.style.background = 'url("eye2.svg") no-repeat center';
+    //reg_togPas.style.backgroundSize = 'contain';
   }
 });
 
 aut_togPas.addEventListener('click', function() {
   if (aut_passInp.type === 'password') {
     aut_passInp.type = 'text';
-    aut_togPas.style.background = 'url("eye1.svg") no-repeat center';
-    aut_togPas.style.backgroundSize = 'contain';
+    aut_togPas.classList.remove('a-togglePassword');
+    aut_togPas.classList.add('a-togglePassword-2');
+    //aut_togPas.style.background = 'url("eye1.svg") no-repeat center';
+    //aut_togPas.style.backgroundSize = 'contain';
   }
   else {
     aut_passInp.type = 'password';
-    aut_togPas.style.background = 'url("eye2.svg") no-repeat center';
-    aut_togPas.style.backgroundSize = 'contain';
+    aut_togPas.classList.remove('a-togglePassword-2');
+    aut_togPas.classList.add('a-togglePassword');
+    //aut_togPas.style.background = 'url("eye2.svg") no-repeat center';
+    //aut_togPas.style.backgroundSize = 'contain';
   }
 });
-
-var nick = document.getElementById('nickname');
-var regE = document.getElementById('regEmail');
-var passSig = document.getElementById('reg-passwordInput');
-var butSig = document.getElementById('signUp');
-var autE = document.getElementById('autEmail');
-var passLog = document.getElementById('aut-passwordInput');
-var butLog = document.getElementById('logIn');
 
 butSig.addEventListener('click', function(event) {
   if (nick.value === '' || regE.value === '' || passSig.value === '') {

@@ -24,7 +24,7 @@ def hi(request):
                             <input type="text" placeholder="Почта" id="regEmail">
                             <div class="passwordContainer">
                                 <input type="password" placeholder="Пароль" id="reg-passwordInput">
-                                <button class="togglePassword" type="button" id="reg-togglePassword" style="margin-top:-7px;"><span style="font-size:20px;">&#x1F441;</span></button>
+                                <button class="togglePassword" type="button" id="reg-togglePassword"></button>
                             </div>
                             <button class="button-popup button-slide slide-inside" type="submit" id="signUp">ПРИСОЕДИНИТЬСЯ</button>
                             <h4>Уже зарегистрированы?</h4>
@@ -35,7 +35,7 @@ def hi(request):
                             <input type="text" placeholder="Почта" id="autEmail">
                             <div>
                                 <input type="password" placeholder="Пароль" id="aut-passwordInput">
-                                <button class="a-togglePassword" type="button" id="aut-togglePassword" style="margin-top:-32px;"><span style="font-size:20px;">&#x1F441;</span></button>
+                                <button class="a-togglePassword" type="button" id="aut-togglePassword"></button>
                             </div>
                             <button class="button-popup button-slide slide-inside" type="submit" id="logIn">ВОЙТИ</button>
                             <h4>Ещё не зарегистрировались?</h4>

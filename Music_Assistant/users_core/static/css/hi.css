@@ -227,12 +227,27 @@ video
     position: relative;
 }
 
-.togglePassword {
+.togglePassword
+{
     position: absolute;
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
     background: url("eye2.svg") no-repeat center;
+    background-size: contain;
+    width: 20px;
+    height: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.togglePassword-2
+{
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: url("eye1.svg") no-repeat center;
     background-size: contain;
     width: 20px;
     height: 20px;
@@ -248,6 +263,21 @@ video
     top: 50%;
     transform: translateY(-50%);
     background: url("eye2.svg") no-repeat center;
+    background-size: contain;
+    width: 20px;
+    height: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.a-togglePassword-2
+{
+    position: absolute;
+    margin-top: -25px;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: url("eye1.svg") no-repeat center;
     background-size: contain;
     width: 20px;
     height: 20px;
