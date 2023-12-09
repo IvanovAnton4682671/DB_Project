@@ -24,7 +24,38 @@
         {% endfor %}
     {% endif %}
     {% autoescape off %}
-    {{ all_data }}
+    {{ all_data_1 }}
     {% endautoescape %}
+     <form class="form" id="form-reg" method="POST">
+         {% csrf_token %}
+         <h4>Регистрация</h4>
+         <input type="text" placeholder="Ник-нейм" id="nickname">
+         <input type="text" placeholder="Почта" id="regEmail">
+         <div class="passwordContainer">
+             <input type="password" placeholder="Пароль" id="reg-passwordInput">
+             <button class="togglePassword" type="button" id="reg-togglePassword"></button>
+         </div>
+         <button class="button-popup button-slide slide-inside" type="submit" id="signUp">ПРИСОЕДИНИТЬСЯ</button>
+         <h4>Уже зарегистрированы?</h4>
+         <button class="button-popup button-slide slide-right" type="button" id="showAut">АВТОРИЗОВАТЬСЯ</button>
+     </form>
+    <form class="form" id="form-aut" method="POST">
+        {% csrf_token %}
+        <h4>Авторизация</h4>
+        <input type="text" placeholder="Почта" id="autEmail">
+        <div>
+            <input type="password" placeholder="Пароль" id="aut-passwordInput">
+            <button class="a-togglePassword" type="button" id="aut-togglePassword"></button>
+        </div>
+        <button class="button-popup button-slide slide-inside" type="submit" id="logIn">ВОЙТИ</button>
+        <h4>Ещё не зарегистрировались?</h4>
+        <button class="button-popup button-slide slide-left" type="button" id="showReg">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+    </form>
+    {% autoescape off %}
+    {{ all_data_2 }}
+    {% endautoescape %}
+<script>
+
+</script>
 </body>
 </html>

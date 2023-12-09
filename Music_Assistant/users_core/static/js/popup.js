@@ -83,6 +83,7 @@ aut_togPas.addEventListener('click', function() {
 
 butSig.addEventListener('click', function(event) {
   if (nick.value === '' || regE.value === '' || passSig.value === '') {
+  console.log('попали в if');
     if (nick.value === '') {
       nick.style.border = '2px solid yellow';
     }
@@ -103,7 +104,38 @@ butSig.addEventListener('click', function(event) {
     }
     alert('Пожалуйста, не оставляйте поля пустыми!');
     event.preventDefault();
-    return;
+  } else {
+    var nickRegex = /^[a-zA-Z0-9_]{5,}$/;
+    var emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+    var passRegex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(.{8,})$/;
+    var nickStr = '';
+    var regEStr = '';
+    var passSigStr = '';
+    if (!nickRegex.test(nick.value)) {
+      nick.style.border = '2px solid yellow';
+      nickStr = 'Никнейм может состоять из латинских букв (в верхнем и нижнем регистре), цифр и символа подчеркивания, и иметь минимальную длину 5 символов!';
+    }
+    else {
+      nick.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (!emailRegex.test(regE.value)) {
+      regE.style.border = '2px solid yellow';
+      regEStr = 'Почта должна иметь вид email@name.domain!';
+    } else {
+      regE.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (!passRegex.test(passSig.value)) {
+      passSig.style.border = '2px solid yellow';
+      passSigStr = 'Пароль должен иметь минимальную длину 8 символов и содержать как минимум одну цифру, одну заглавную букву и один из специальных символов: !@#$%^&*!';
+    } else {
+      passSig.style.border = '2px solid rgb(216, 2, 134)';
+    }
+    if (nickRegex.test(nick.value) && emailRegex.test(regE.value) && passRegex.test(passSig.value)) {
+      alert('Вы успешно зарегистрировались!');
+    } else {
+      alert('Пожалуйста, заполните поля корректно! ' + nickStr + ' ' + regEStr + ' ' + passSigStr);
+      event.preventDefault();
+    }
   }
 });
 

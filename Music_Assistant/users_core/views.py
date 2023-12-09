@@ -8,7 +8,7 @@ def hi(request):
     scripts = [static("js/popup.js")]
     title = "Добро пожаловать!"
     videos = [static("video/equalizer.mp4")]
-    all_data = '''
+    all_data_1 = '''
     <div class="blur"></div>
         <div class="content">
             <div class="container">
@@ -18,34 +18,13 @@ def hi(request):
                 <div class="popup-blur" id="popup-blur"></div>
                 <div class="popup-center">
                     <div class="popup" id="popup">
-                        <form class="form" id="form-reg">
-                            <h4>Регистрация</h5>
-                            <input type="text" placeholder="Ник-нейм" id="nickname">
-                            <input type="text" placeholder="Почта" id="regEmail">
-                            <div class="passwordContainer">
-                                <input type="password" placeholder="Пароль" id="reg-passwordInput">
-                                <button class="togglePassword" type="button" id="reg-togglePassword"></button>
-                            </div>
-                            <button class="button-popup button-slide slide-inside" type="submit" id="signUp">ПРИСОЕДИНИТЬСЯ</button>
-                            <h4>Уже зарегистрированы?</h4>
-                            <button class="button-popup button-slide slide-right" type="button" id="showAut">АВТОРИЗОВАТЬСЯ</button>
-                        </form>
-                        <form class="form" id="form-aut">
-                            <h4>Авторизация</h4>
-                            <input type="text" placeholder="Почта" id="autEmail">
-                            <div>
-                                <input type="password" placeholder="Пароль" id="aut-passwordInput">
-                                <button class="a-togglePassword" type="button" id="aut-togglePassword"></button>
-                            </div>
-                            <button class="button-popup button-slide slide-inside" type="submit" id="logIn">ВОЙТИ</button>
-                            <h4>Ещё не зарегистрировались?</h4>
-                            <button class="button-popup button-slide slide-left" type="button" id="showReg">ЗАРЕГИСТРИРОВАТЬСЯ</button>
-                        </form>
+    '''
+    all_data_2 = '''
                         <div class="dop-div" id="dop-div"></div>
                     </div>
                 </div>
             </div>
         </div>
     '''
-    data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data": all_data}
+    data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1, "all_data_2": all_data_2}
     return render(request, "hi.html", context=data)
