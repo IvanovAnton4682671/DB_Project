@@ -83,23 +83,19 @@ aut_togPas.addEventListener('click', function() {
 
 butSig.addEventListener('click', function(event) {
   if (nick.value === '' || regE.value === '' || passSig.value === '') {
-  console.log('попали в if');
     if (nick.value === '') {
       nick.style.border = '2px solid yellow';
-    }
-    else {
+    } else {
       nick.style.border = '2px solid rgb(216, 2, 134)';
     }
     if (regE.value === '') {
       regE.style.border = '2px solid yellow';
-    }
-    else {
+    } else {
       regE.style.border = '2px solid rgb(216, 2, 134)';
     }
     if (passSig.value === '') {
       passSig.style.border = '2px solid yellow';
-    }
-    else {
+    } else {
       passSig.style.border = '2px solid rgb(216, 2, 134)';
     }
     alert('Пожалуйста, не оставляйте поля пустыми!');
@@ -133,7 +129,11 @@ butSig.addEventListener('click', function(event) {
     if (nickRegex.test(nick.value) && emailRegex.test(regE.value) && passRegex.test(passSig.value)) {
       alert('Вы успешно зарегистрировались!');
     } else {
-      alert('Пожалуйста, заполните поля корректно! ' + nickStr + ' ' + regEStr + ' ' + passSigStr);
+      alert_s = 'Пожалуйста, заполните поля корректно!';
+      if (nickStr != '') { alert_s += '\n' + '----------\n' + nickStr }
+      if (regEStr != '') { alert_s += '\n' + '----------\n' + regEStr }
+      if (passSigStr != '') { alert_s += '\n' + '----------\n' + passSigStr }
+      alert(alert_s);
       event.preventDefault();
     }
   }
