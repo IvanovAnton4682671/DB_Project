@@ -80,12 +80,12 @@ WSGI_APPLICATION = 'Music_Assistant.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'users',
-        'USER': 'root',
+        'USER': 'postgres',
         'PASSWORD': '4682671',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',
     },
     'music_mongodb': {
         'ENGINE': 'djongo',

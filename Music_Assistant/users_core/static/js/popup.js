@@ -60,15 +60,11 @@ reg_togPas.addEventListener('click', function() {
     reg_passInp.type = 'text';
     reg_togPas.classList.remove('togglePassword');
     reg_togPas.classList.add('togglePassword-2');
-    //reg_togPas.style.background = 'url("eye1.svg") no-repeat center';
-    //reg_togPas.style.backgroundSize = 'contain';
   }
   else {
     reg_passInp.type = 'password';
     reg_togPas.classList.remove('togglePassword-2');
     reg_togPas.classList.add('togglePassword');
-    //reg_togPas.style.background = 'url("eye2.svg") no-repeat center';
-    //reg_togPas.style.backgroundSize = 'contain';
   }
 });
 
@@ -77,15 +73,11 @@ aut_togPas.addEventListener('click', function() {
     aut_passInp.type = 'text';
     aut_togPas.classList.remove('a-togglePassword');
     aut_togPas.classList.add('a-togglePassword-2');
-    //aut_togPas.style.background = 'url("eye1.svg") no-repeat center';
-    //aut_togPas.style.backgroundSize = 'contain';
   }
   else {
     aut_passInp.type = 'password';
     aut_togPas.classList.remove('a-togglePassword-2');
     aut_togPas.classList.add('a-togglePassword');
-    //aut_togPas.style.background = 'url("eye2.svg") no-repeat center';
-    //aut_togPas.style.backgroundSize = 'contain';
   }
 });
 
