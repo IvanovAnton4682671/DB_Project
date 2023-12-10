@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',  # cors-заголовки
     'users_core',
     'music_core',
     'music_links_core',
@@ -51,7 +52,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # cors-заголовки
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True  # cors-заголовки
 
 ROOT_URLCONF = 'Music_Assistant.urls'
 

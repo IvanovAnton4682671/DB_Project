@@ -26,25 +26,39 @@
     {% autoescape off %}
     {{ all_data_1 }}
     {% endautoescape %}
-     <form class="form" id="form-reg" method="POST">
+    {% if messages %}
+    <div class="message">
+        {% for message in messages %}
+            {% if message.tags == "success" %}
+                <p style="background-color: green;border-radius: 10px;color: white;">{{ message }}</p>
+            {% elif message.tags == "error" %}
+                <p style="background-color: red;border-radius: 10px;">{{ message }}</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% autoescape off %}
+    {{ all_data_2 }}
+    {% endautoescape %}
+     <form class="form" id="form-reg" action="form_reg_sending" method="POST">
          {% csrf_token %}
          <h4>Регистрация</h4>
-         <input type="text" placeholder="Ник-нейм" id="nickname">
-         <input type="text" placeholder="Почта" id="regEmail">
+         <input type="text" placeholder="Ник-нейм" id="nickname" name="nickname" value="{{ nickname }}">
+         <input type="text" placeholder="Почта" id="regEmail" name="regEmail" value="{{ regEmail }}">
          <div class="passwordContainer">
-             <input type="password" placeholder="Пароль" id="reg-passwordInput">
+             <input type="password" placeholder="Пароль" id="reg-passwordInput" name="reg-passwordInput" value="{{ regPass }}">
              <button class="togglePassword" type="button" id="reg-togglePassword"></button>
          </div>
          <button class="button-popup button-slide slide-inside" type="submit" id="signUp">ПРИСОЕДИНИТЬСЯ</button>
          <h4>Уже зарегистрированы?</h4>
          <button class="button-popup button-slide slide-right" type="button" id="showAut">АВТОРИЗОВАТЬСЯ</button>
      </form>
-    <form class="form" id="form-aut" method="POST">
+    <form class="form" id="form-aut" action="form_aut_sending" method="POST">
         {% csrf_token %}
         <h4>Авторизация</h4>
-        <input type="text" placeholder="Почта" id="autEmail">
+        <input type="text" placeholder="Почта" id="autEmail" name="autEmail" value="{{ autEmail }}">
         <div>
-            <input type="password" placeholder="Пароль" id="aut-passwordInput">
+            <input type="password" placeholder="Пароль" id="aut-passwordInput" name="aut-passwordInput" value="{{ autPass }}">
             <button class="a-togglePassword" type="button" id="aut-togglePassword"></button>
         </div>
         <button class="button-popup button-slide slide-inside" type="submit" id="logIn">ВОЙТИ</button>
@@ -52,7 +66,7 @@
         <button class="button-popup button-slide slide-left" type="button" id="showReg">ЗАРЕГИСТРИРОВАТЬСЯ</button>
     </form>
     {% autoescape off %}
-    {{ all_data_2 }}
+    {{ all_data_3 }}
     {% endautoescape %}
 </body>
 </html>

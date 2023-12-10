@@ -21,6 +21,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path("form_reg_sending", views.form_reg_sending, name="form_reg_sending"),
+    path("form_aut_sending", views.form_aut_sending, name="form_aut_sending"),
     path("", views.hi, name="hi.html"),
 ]
 

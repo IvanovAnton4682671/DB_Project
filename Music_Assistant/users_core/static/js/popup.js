@@ -83,6 +83,7 @@ aut_togPas.addEventListener('click', function() {
 
 butSig.addEventListener('click', function(event) {
   if (nick.value === '' || regE.value === '' || passSig.value === '') {
+    console.log('Попали в if, связанный с пустыми полями')
     if (nick.value === '') {
       nick.style.border = '2px solid yellow';
     } else {
@@ -101,34 +102,37 @@ butSig.addEventListener('click', function(event) {
     alert('Пожалуйста, не оставляйте поля пустыми!');
     event.preventDefault();
   } else {
-    var nickRegex = /^[a-zA-Z0-9_]{5,}$/;
-    var emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+    console.log('Попали в else, связанное с заполненными полями')
+    var nickRegex = /^[a-zA-Z0-9_]{5,40}$/;
+    var emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,40}$/;
     var passRegex = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(.{8,})$/;
     var nickStr = '';
     var regEStr = '';
     var passSigStr = '';
     if (!nickRegex.test(nick.value)) {
-      nick.style.border = '2px solid yellow';
-      nickStr = 'Никнейм может состоять из латинских букв (в верхнем и нижнем регистре), цифр и символа подчеркивания, и иметь минимальную длину 5 символов!';
+      nick.style.border = '2px solid red';
+      nickStr = 'Никнейм может состоять из латинских букв (в верхнем и нижнем регистре), цифр и символа подчеркивания, иметь минимальную длину 5 символов и быть не больше 40 символов!';
     }
     else {
       nick.style.border = '2px solid rgb(216, 2, 134)';
     }
     if (!emailRegex.test(regE.value)) {
-      regE.style.border = '2px solid yellow';
-      regEStr = 'Почта должна иметь вид email@name.domain!';
+      regE.style.border = '2px solid red';
+      regEStr = 'Почта должна иметь вид email@name.domain и быть не больше 40 символов!';
     } else {
       regE.style.border = '2px solid rgb(216, 2, 134)';
     }
     if (!passRegex.test(passSig.value)) {
-      passSig.style.border = '2px solid yellow';
+      passSig.style.border = '2px solid red';
       passSigStr = 'Пароль должен иметь минимальную длину 8 символов и содержать как минимум одну цифру, одну заглавную букву и один из специальных символов: !@#$%^&*!';
     } else {
       passSig.style.border = '2px solid rgb(216, 2, 134)';
     }
     if (nickRegex.test(nick.value) && emailRegex.test(regE.value) && passRegex.test(passSig.value)) {
-      alert('Вы успешно зарегистрировались!');
+      console.log('Попали в if, связанный с корректными полями')
+      alert('Проверка данных...');
     } else {
+      console.log('Попади в else, связанное с некорректными непустыми полями')
       alert_s = 'Пожалуйста, заполните поля корректно!';
       if (nickStr != '') { alert_s += '\n' + '----------\n' + nickStr }
       if (regEStr != '') { alert_s += '\n' + '----------\n' + regEStr }
@@ -156,5 +160,7 @@ butLog.addEventListener('click', function(event) {
     alert('Пожалуйста, не оставляйте поля пустыми!');
     event.preventDefault();
     return;
+  } else if (autE.value != '' && passLog.value != '') {
+    alert('Проверка данных...')
   }
 });
