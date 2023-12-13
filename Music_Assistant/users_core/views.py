@@ -14,7 +14,6 @@ def hi(request):
     title = "Добро пожаловать!"
     videos = [static("video/equalizer.mp4")]
     all_data_1 = '''
-                       <div class="blur"></div>
                            <div class="content">
                                <div class="container">
                        '''
@@ -52,7 +51,6 @@ def form_reg_sending(request):
         title = "Добро пожаловать!"
         videos = [static("video/equalizer.mp4")]
         all_data_1 = '''
-                    <div class="blur"></div>
                         <div class="content">
                             <div class="container">
                     '''
@@ -82,6 +80,7 @@ def form_reg_sending(request):
                 user = Users(nickname=nickname, email=email, password=sha224)
                 user.save()
                 messages.success(request, "Вы успешно зарегистрировались!")
+                return render(request, "hi_redirect.html", context=data)
             else:
                 if Users.objects.filter(nickname=nickname, email=email).exists():
                     messages.error(request, "Пользователь с таким ник-неймом и почтой уже существует!")
@@ -108,7 +107,6 @@ def form_aut_sending(request):
         title = "Добро пожаловать!"
         videos = [static("video/equalizer.mp4")]
         all_data_1 = '''
-                            <div class="blur"></div>
                                 <div class="content">
                                     <div class="container">
                             '''
@@ -135,6 +133,54 @@ def form_aut_sending(request):
             messages.error(request, "Неверная почта или пароль!")
         else:
             messages.success(request, "Вы успешно авторизовались!")
+            return render(request, "hi_redirect.html", context=data)
         return render(request, "hi.html", context=data)
     else:
         return HttpResponseBadRequest("Разрешены только POST-запросы!")
+
+
+def main(request):
+    links = [static("css/main.css")]
+    scripts = [static("js/main.js")]
+    title = "Рабочая зона"
+    videos = [static("video/equalizer.mp4")]
+    all_data_1 = '''
+                <div class="content">
+                    <div class="container">
+                '''
+    all_data_2 = '''
+                <div class="horizontal-orientation">
+                    <div class="adaptive">
+                        <h4>Музыкальная база</h4>
+                        <div class="whole-library" id="wholeLibrary">
+                            <button class="button-popup button-slide slide-inside" type="button" id="openWholeLibrary">ПОКАЗАТЬ</button>
+                        </div>
+                        <div class="button-center">
+                            <button class="button-popup button-slide slide-inside" style="display: none;" type="button" id="closeWholeLibrary">ЗАКРЫТЬ</button>
+                        </div>
+                    </div>
+                    <div class="adaptive">
+                        <h4>Моя бибилиотека</h4>
+                        <div class="my-library" id="myLibrary">
+                            <button class="button-popup button-slide slide-inside" type="button" id="openMyLibrary">ПОКАЗАТЬ</button>
+                        </div>
+                        <div class="button-center">
+                            <button class="button-popup button-slide slide-inside" style="display: none;" type="button" id="closeMyLibrary">ЗАКРЫТЬ</button>
+                        </div>
+                    </div>
+                    <div class="adaptive">
+                        <h4>Узнать рекомендации</h4>
+                        <div class="recomendation-library" id="recomendationLibrary">
+                            <button class="button-popup button-slide slide-inside" type="button" id="openRecomendationLibrary">ПОКАЗАТЬ</button>
+                        </div>
+                        <div class="button-center">
+                            <button class="button-popup button-slide slide-inside" style="display: none;" type="button" id="closeRecomendationLibrary">ЗАКРЫТЬ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+                '''
+    data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
+            "all_data_2": all_data_2}
+    return render(request, "main.html", context=data)

@@ -9,3 +9,6 @@ class Users(models.Model):
 
     def __str__(self):
         return f"{self.id} {self.nickname} {self.email} {self.password}"
+
+    class Meta:
+        db_table = "users"

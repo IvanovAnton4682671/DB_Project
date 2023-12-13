@@ -111,7 +111,7 @@ DATABASES = {
 
 
 # роутер для управления базами данных
-DATABASE_ROUTERS = ['Music_Assistant.routers.MultiDBRouter']
+DATABASE_ROUTERS = ['Music_Assistant.routers.MultiDBRouter',]
 
 
 # Password validation
