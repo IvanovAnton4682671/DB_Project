@@ -93,7 +93,7 @@ DATABASES = {
     },
     'music_mongodb': {
         'ENGINE': 'djongo',
-        'NAME': 'music',
+        'NAME': 'music_base',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': 'mongodb://localhost:27017/',
@@ -101,7 +101,7 @@ DATABASES = {
     },
     'links_mongodb': {
         'ENGINE': 'djongo',
-        'NAME': 'links',
+        'NAME': 'music_links',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': 'mongodb://localhost:27017/',

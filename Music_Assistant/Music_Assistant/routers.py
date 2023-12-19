@@ -2,7 +2,9 @@
 class MultiDBRouter:
     def db_for_read(self, model, **hints):
         if model._meta.app_label == 'users_core':
-            return 'default'
+            # return ['default', 'music_mongodb']
+            # return 'default'
+            return 'music_mongodb'
         elif model._meta.app_label == 'music_core':
             return 'music_mongodb'
         elif model._meta.app_label == 'music_links_core':

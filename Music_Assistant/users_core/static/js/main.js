@@ -1,11 +1,13 @@
 var btnOpWhlLib = document.getElementById('openWholeLibrary');
 var btnClWhlLib = document.getElementById('closeWholeLibrary');
 var whlLib = document.getElementById('wholeLibrary');
+var whlLibText = document.getElementById('wholeLibraryTextarea');
 
 btnOpWhlLib.addEventListener('click', function(event) {
     btnOpWhlLib.style.display = 'none';
     btnClWhlLib.style.display = 'block';
     whlLib.style.animation = 'stretching 0.5s forwards';
+    whlLibText.style.display = 'block';
     event.stopPropagation();
 });
 
@@ -13,6 +15,7 @@ btnClWhlLib.addEventListener('click', function(event) {
     btnOpWhlLib.style.display = 'block';
     btnClWhlLib.style.display = 'none';
     whlLib.style.animation = 'compression 0.5s forwards';
+    whlLibText.style.display = 'none';
     event.stopPropagation();
 });
 

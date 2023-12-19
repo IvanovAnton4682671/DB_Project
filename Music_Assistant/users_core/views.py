@@ -6,6 +6,7 @@ from django.contrib import messages
 from .models import *
 import re
 import hashlib
+from django.apps import apps
 
 
 def hi(request):
@@ -153,6 +154,10 @@ def main(request):
                     <div class="adaptive">
                         <h4>Музыкальная база</h4>
                         <div class="whole-library" id="wholeLibrary">
+                            <div class="whole-library-textarea" style="display: none;" id="wholeLibraryTextarea">
+                '''
+    all_data_3 = '''
+                            </div>
                             <button class="button-popup button-slide slide-inside" type="button" id="openWholeLibrary">ПОКАЗАТЬ</button>
                         </div>
                         <div class="button-center">
@@ -181,6 +186,11 @@ def main(request):
             </div>
         </div>
                 '''
+    model = apps.get_model("users_core", "MusicBase")
+    fields = model._meta.get_fields()
+    field_name_raw = [field.name for field in fields]
+    field_name = field_name_raw[1:]
+    table_data = [(str(data_t)).split() for data_t in model.objects.all()]
     data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
-            "all_data_2": all_data_2}
+            "all_data_2": all_data_2, "field_data": field_name, "table_data": table_data, "all_data_3": all_data_3}
     return render(request, "main.html", context=data)
