@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',  # cors-заголовки
+    'corsheaders',  # cors-заголовки (чтобы агенту пользователя можно было использовать домен, отличный от домена по-умолчанию)
     'users_core',
     'music_core',
     'music_links_core',

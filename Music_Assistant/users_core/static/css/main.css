@@ -70,6 +70,7 @@ video
 
 .whole-library
 {
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -83,7 +84,6 @@ video
 .whole-library-textarea
 {
     overflow: auto;
-    margin-top: 3px;
     margin-left: auto;
     margin-right: auto;
     width: 800px;

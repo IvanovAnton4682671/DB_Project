@@ -1,0 +1,77 @@
+После настройки роутера для работы одного приложения с тремя бд:
+
+class MultiDBRouter:
+    def db_for_read(self, model, **hints):
+        """Направляет операции чтения на соответствующую БД."""
+        if model._meta.model_name == "Users":
+            return 'default'
+        elif model._meta.model_name == "MusicBase":
+            return 'music_mongodb'
+        # elif model._meta.model_name == "MusicLinks":
+            # return 'links_mongodb'
+        return None
+
+    def db_for_write(self, model, **hints):
+        """Направляет операции записи на соответствующую БД."""
+        return self.db_for_read(model, **hints)
+
+    def allow_relation(self, obj1, obj2, **hints):
+        """Определяет, могут ли две модели иметь отношение."""
+        # Так как связи между разными базами данных в Django запрещены,
+        # здесь требуется условие, запрещающее связи.
+        if obj1._state.db in ['default', 'music_mongodb', 'links_mongodb'] and \
+           obj2._state.db in ['default', 'music_mongodb', 'links_mongodb']:
+            return True
+        return False
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        """Управляет миграциями моделей."""
+        if db == 'default':
+            # Указывается, что миграции для default БД разрешены только для определенных моделей
+            return model_name in ['Users']
+        if db == 'music_mongodb':
+            return model_name in ['MusicBase']
+        # if db == 'links_mongodb':
+            # return model_name in ['MusicLinks']
+        return None
+
+При попытке выполнить команду python manage.py makemigrations появилась такая ошибка:
+
+(music_recomendation) PS D:\Programming\Python\DB_project\Music_Assistant> python manage.py makemigrations
+D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\core\management\commands\makemigrations.py:143: RuntimeWarning: Got an error che
+cking a consistent migration history performed for database connection 'default':
+  warnings.warn(
+No changes detected
+Traceback (most recent call last):
+  File "D:\Programming\Python\DB_project\Music_Assistant\manage.py", line 22, in <module>
+    main()
+  File "D:\Programming\Python\DB_project\Music_Assistant\manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\core\management\__init__.py", line 446, in execute_from_command_line
+    utility.execute()
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\core\management\__init__.py", line 440, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\core\management\base.py", line 415, in run_from_argv
+    connections.close_all()
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\utils\connection.py", line 85, in close_all
+    conn.close()
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\django\db\backends\base\base.py", line 358, in close
+    self._close()
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\djongo\base.py", line 208, in _close
+    if self.connection:
+  File "D:\Programming\Python\DB_project\music_recomendation\lib\site-packages\pymongo\database.py", line 1337, in __bool__
+    raise NotImplementedError(
+NotImplementedError: Database objects do not implement truth value testing or bool(). Please compare with None instead: database is not None
+
+Она связана с этим:
+Для djongo, который ожидает, что база данных может быть проверена на истинность
+(что делает if self.connection:), это может создать проблему, поскольку pymongo не реализует такую проверку
+для своих объектов баз данных. Что интересно, Django закрывает соединение после завершения команды управления,
+и djongo пытается установить, открыто ли соединение с MongoDB, прежде чем закрыть его.
+Этот механизм реализован нестандартно для pymongo.
+
+Пришлось менять исходный код djongo (в djongo/base.py):
+это: if self.connection:
+на это: if self.connection is not None:
