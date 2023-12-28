@@ -86,21 +86,21 @@ video
     overflow: auto;
     margin-left: auto;
     margin-right: auto;
-    width: 800px;
+    width: 875px;
     height: 400px;
     color: white;
     font-size: 15px;
 }
 
-table
+/*table
 {
     border-collapse: collapse;
-}
+}*/
 
 table td
 {
-    border: 2px solid white;
-    border-radius: 20px;
+    border: 2px solid limegreen;
+    border-radius: 10px;
     word-break: break-word;
 }
 
@@ -151,6 +151,22 @@ table td
     transition: ease-out 0.4s;
 }
 
+.dop-button
+{
+    display: block;
+    border: 2px solid limegreen;
+    border-radius: 10px;
+    background-color: limegreen;
+    color: white;
+}
+
+.dop-button:hover
+{
+    border: 2px solid green;
+    background-color: green;
+    transition: 0.4s;
+}
+
 .slide-inside:hover
 {
     box-shadow: inset 0 0 0 50px #D80286;
@@ -165,7 +181,7 @@ table td
     }
     to
     {
-        width: 800px;
+        width: 875px;
         height: 400px;
     }
 }
@@ -174,7 +190,7 @@ table td
 {
     from
     {
-        width: 800px;
+        width: 875px;
         height: 400px;
     }
     to

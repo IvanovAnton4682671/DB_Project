@@ -6,8 +6,8 @@ class MultiDBRouter:
             return 'default'
         elif model._meta.model_name == "musicbase":
             return 'music_mongodb'
-        # elif model._meta.model_name == "musiclinks":
-            # return 'links_mongodb'
+        elif model._meta.model_name == "musiclinks":
+            return 'links_mongodb'
         return None
 
     def db_for_write(self, model, **hints):
@@ -30,6 +30,6 @@ class MultiDBRouter:
             return model_name in ['users']
         if db == 'music_mongodb':
             return model_name in ['musicbase']
-        # if db == 'links_mongodb':
-            # return model_name in ['musiclinks']
+        if db == 'links_mongodb':
+            return model_name in ['musiclinks']
         return None

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import render
 from django.http import HttpResponseBadRequest
@@ -6,10 +7,13 @@ from django.contrib import messages
 from .models import *
 import re
 import hashlib
-from django.apps import apps
+from pymongo import MongoClient
 
 
 def hi(request):
+    """Стартовая функция, которая нас приветствует на странице."""
+
+    # загрузка статических файлов и статичных переменных (таких как all_data)
     links = [static("css/hi.css")]
     scripts = [static("js/popup.js")]
     title = "Добро пожаловать!"
@@ -39,7 +43,10 @@ def hi(request):
 
 
 def form_reg_sending(request):
+    """Регистрация пользователя, проверка по базе."""
+
     if request.method == 'POST':
+        # обработка регистрации
         nickname = request.POST.get("nickname", "-undefined-")
         email = request.POST.get("regEmail", "-undefined-")
         password = request.POST.get("reg-passwordInput", "-undefined-")
@@ -47,6 +54,12 @@ def form_reg_sending(request):
         email_regex = r"^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,40}$"
         password_regex = r"^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(.{8,})$"
 
+        # почему-то сессии в этой функции вызывают непонятную ошибку, связанную с django_sessions
+        # загрузка данных в сессию для дальнейшей работы
+        # request.session["user_nickname"] = nickname
+        # request.session["user_email"] = email
+
+        # статичные объекты
         links = [static("css/hi.css")]
         scripts = [static("js/popup.js")]
         title = "Добро пожаловать!"
@@ -74,14 +87,24 @@ def form_reg_sending(request):
                 "all_data_2": all_data_2, "nickname": nickname, "regEmail": email, "regPass": password,
                 "all_data_3": all_data_3}
 
+        # проверка корректности данных для создания пользователя
         if re.match(nickname_regex, nickname) and re.match(email_regex, email) and re.match(password_regex, password):
             existing_user = Users.objects.filter(Q(nickname=nickname) | Q(email=email))
             if not existing_user:
                 sha224 = hashlib.sha224(password.encode("utf-8")).hexdigest()
                 user = Users(nickname=nickname, email=email, password=sha224)
                 user.save()
+
+                # создание отдельной коллекции для каждого пользователя - очень нестандартная вещь
+                # для классической работы MongoDB с Django, придётся работать через pymongo
+                client = MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host'])
+                db = client[settings.DATABASES['links_mongodb']['NAME']]
+                user_collection = db[nickname]  # используем никнейм пользователя как имя новой коллекции
+                user_collection.insert_one({"email": email, "links": []})  # только для инициализации коллекции
+
                 messages.success(request, "Вы успешно зарегистрировались!")
                 return render(request, "hi_redirect.html", context=data)
+            # различные исключения
             else:
                 if Users.objects.filter(nickname=nickname, email=email).exists():
                     messages.error(request, "Пользователь с таким ник-неймом и почтой уже существует!")
@@ -98,7 +121,9 @@ def form_reg_sending(request):
 
 
 def form_aut_sending(request):
+    """Авторизация пользователя, проверка по базе."""
     if request.method == "POST":
+        # обработка авторизации пользователя
         email = request.POST.get("autEmail", "-undefined-")
         password = request.POST.get("aut-passwordInput", "-undefined-")
         sha224 = hashlib.sha224(password.encode("utf-8")).hexdigest()
@@ -129,7 +154,15 @@ def form_aut_sending(request):
         data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
                 "all_data_2": all_data_2, "autEmail": email, "autPass": password, "all_data_3": all_data_3}
 
-        existing_user = Users.objects.filter(email=email, password=sha224)
+        existing_user = Users.objects.get(email=email, password=sha224)
+
+        # та же проблема с сессиями
+        # загрузка в сессию для дальнейшей работы
+        # nickname = existing_user.nickname
+        # request.session["user_nickname"] = nickname
+        # request.session["user_email"] = email
+
+        # различные исключения
         if not existing_user:
             messages.error(request, "Неверная почта или пароль!")
         else:
@@ -139,8 +172,27 @@ def form_aut_sending(request):
     else:
         return HttpResponseBadRequest("Разрешены только POST-запросы!")
 
+# -------------------- КОСТЫЛЬ --------------------
+# это ужасный костыль, который относится только к функции main и общей музыкальной базе
+# проблема в том, что в mongodb по данным ходит итератор (курсор)
+# если этот запрос к бд реализовать в функции main, то он будет происходить каждый раз при заходе на /main
+# а проблема в том, что курсор не возвращается в начало сам, и в ручную его туда перетащить в django нельзя
+# и при повторном заходе мы получаем error - чтение пустых данных
+# так что, пока пусть будет так
+
+field_names = [field.name for field in MusicBase._meta.fields][1:]
+music_objects = MusicBase.objects.all()
+# table_data = [[getattr(obj, field) for field in field_names] for obj in music_objects]
+table_data = []
+for obj in music_objects:
+    row_data = [getattr(obj, field) for field in field_names]
+    add_button = f'<button class="dop-button">Добавить</button>'
+    row_data.append(add_button)
+    table_data.append(row_data)
 
 def main(request):
+    """Загрузка музыкальной базы и на главную страницу."""
+    # загрузка статичных объектов
     links = [static("css/main.css")]
     scripts = [static("js/main.js")]
     title = "Рабочая зона"
@@ -186,11 +238,7 @@ def main(request):
             </div>
         </div>
                 '''
-    model = apps.get_model("users_core", "MusicBase")
-    fields = model._meta.get_fields()
-    field_name_raw = [field.name for field in fields]
-    field_name = field_name_raw[1:]
-    table_data = [(str(data_t)).split() for data_t in model.objects.all()]
     data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
-            "all_data_2": all_data_2, "field_data": field_name, "table_data": table_data, "all_data_3": all_data_3}
+            "all_data_2": all_data_2, "field_data": field_names, "table_data": table_data, "all_data_3": all_data_3}
     return render(request, "main.html", context=data)
+# -------------------- КОНЕЦ КОСТЫЛЯ --------------------
