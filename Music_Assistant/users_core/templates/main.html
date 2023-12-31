@@ -59,5 +59,24 @@
     {% autoescape off %}
     {{ all_data_3 }}
     {% endautoescape %}
+    {% autoescape off %}
+    <table>
+        <tr>
+            {% for field in field_data_2 %}
+            <td>{{ field }}</td>
+            {% endfor %}
+        </tr>
+        {% for table_row in table_data_2 %}
+        <tr>
+            {% for cell in table_row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% endautoescape %}
+    {% autoescape off %}
+    {{ all_data_4 }}
+    {% endautoescape %}
 </body>
 </html>

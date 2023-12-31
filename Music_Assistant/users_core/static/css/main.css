@@ -167,6 +167,22 @@ table td
     transition: 0.4s;
 }
 
+.del-button
+{
+    display: block;
+    border: 2px solid rgb(168, 23, 55);
+    border-radius: 10px;
+    background-color: rgb(168, 23, 55);
+    color: white;
+}
+
+.del-button:hover
+{
+    border: 2px solid rgb(110, 8, 30);
+    background-color: rgb(110, 8, 30);
+    transition: 0.4s;
+}
+
 .slide-inside:hover
 {
     box-shadow: inset 0 0 0 50px #D80286;

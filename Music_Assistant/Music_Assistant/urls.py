@@ -21,6 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path("add-to-library/", views.add_to_library, name="add_to_library"),
     path("main", views.main, name="main"),
     path("form_reg_sending", views.form_reg_sending, name="form_reg_sending"),
     path("form_aut_sending", views.form_aut_sending, name="form_aut_sending"),
@@ -28,4 +29,10 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
+    import debug_toolbar
+    from django.urls import include
+
+    urlpatterns = [
+        path("__debug__/", include(debug_toolbar.urls)),
+    ] + urlpatterns
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

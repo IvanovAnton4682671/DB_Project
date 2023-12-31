@@ -14,6 +14,8 @@ class Users(models.Model):
         db_table = "users"
 
 class MusicBase(models.Model):
+    # _id = models.ObjectIdField() не работает, так как какая-то проблема с пакетом bson
+    dop_id = models.IntegerField()
     genre = models.CharField(max_length=30)
     author = models.CharField(max_length=40)
     co_author = models.CharField(max_length=40)

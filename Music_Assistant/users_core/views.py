@@ -8,11 +8,13 @@ from .models import *
 import re
 import hashlib
 from pymongo import MongoClient
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 
 def hi(request):
-    """Стартовая функция, которая нас приветствует на странице."""
-
+    """Стартовая функция, которая нас приветствует на странице"""
     # загрузка статических файлов и статичных переменных (таких как all_data)
     links = [static("css/hi.css")]
     scripts = [static("js/popup.js")]
@@ -43,8 +45,7 @@ def hi(request):
 
 
 def form_reg_sending(request):
-    """Регистрация пользователя, проверка по базе."""
-
+    """Регистрация пользователя, проверка по базе"""
     if request.method == 'POST':
         # обработка регистрации
         nickname = request.POST.get("nickname", "-undefined-")
@@ -95,15 +96,21 @@ def form_reg_sending(request):
                 user = Users(nickname=nickname, email=email, password=sha224)
                 user.save()
 
+                # не работает из-за переадресации
+                # messages.add_message(request, messages.INFO, f"{email}")
+                # messages.info(request, email, extra_tags="INFO")
+
                 # создание отдельной коллекции для каждого пользователя - очень нестандартная вещь
                 # для классической работы MongoDB с Django, придётся работать через pymongo
                 client = MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host'])
                 db = client[settings.DATABASES['links_mongodb']['NAME']]
                 user_collection = db[nickname]  # используем никнейм пользователя как имя новой коллекции
-                user_collection.insert_one({"email": email, "links": []})  # только для инициализации коллекции
+                user_collection.insert_one({"email": email, "links": []})  # для инициализации коллекции, музыку храним в links
 
                 messages.success(request, "Вы успешно зарегистрировались!")
-                return render(request, "hi_redirect.html", context=data)
+                response = render(request, "hi_redirect.html", context=data)
+                response.set_cookie("user_collection", nickname)  # запоминаем ник пользователя для дальнейшей работы
+                return response
             # различные исключения
             else:
                 if Users.objects.filter(nickname=nickname, email=email).exists():
@@ -121,7 +128,7 @@ def form_reg_sending(request):
 
 
 def form_aut_sending(request):
-    """Авторизация пользователя, проверка по базе."""
+    """Авторизация пользователя, проверка по базе"""
     if request.method == "POST":
         # обработка авторизации пользователя
         email = request.POST.get("autEmail", "-undefined-")
@@ -154,21 +161,23 @@ def form_aut_sending(request):
         data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
                 "all_data_2": all_data_2, "autEmail": email, "autPass": password, "all_data_3": all_data_3}
 
-        existing_user = Users.objects.get(email=email, password=sha224)
-
-        # та же проблема с сессиями
-        # загрузка в сессию для дальнейшей работы
-        # nickname = existing_user.nickname
-        # request.session["user_nickname"] = nickname
-        # request.session["user_email"] = email
-
-        # различные исключения
-        if not existing_user:
-            messages.error(request, "Неверная почта или пароль!")
-        else:
+        try:
+            existing_user = Users.objects.get(email=email, password=sha224)
             messages.success(request, "Вы успешно авторизовались!")
-            return render(request, "hi_redirect.html", context=data)
-        return render(request, "hi.html", context=data)
+            response = render(request, "hi_redirect.html", context=data)
+            response.set_cookie("user_collection", existing_user.nickname)  # запоминаем ник для работы
+            # не работают из-за переадресации
+            # messages.add_message(request, messages.INFO, f"{email}")
+
+            # та же проблема с сессиями
+            # загрузка в сессию для дальнейшей работы
+            # nickname = existing_user.nickname
+            # request.session["user_nickname"] = nickname
+            # request.session["user_email"] = email
+            return response
+        except Users.DoesNotExist:
+            messages.error(request, "Неверная почта или пароль!")
+            return render(request, "hi.html", context=data)
     else:
         return HttpResponseBadRequest("Разрешены только POST-запросы!")
 
@@ -180,18 +189,17 @@ def form_aut_sending(request):
 # и при повторном заходе мы получаем error - чтение пустых данных
 # так что, пока пусть будет так
 
-field_names = [field.name for field in MusicBase._meta.fields][1:]
+field_names = [field.name for field in MusicBase._meta.fields][2:]
 music_objects = MusicBase.objects.all()
-# table_data = [[getattr(obj, field) for field in field_names] for obj in music_objects]
 table_data = []
 for obj in music_objects:
     row_data = [getattr(obj, field) for field in field_names]
-    add_button = f'<button class="dop-button">Добавить</button>'
+    music_id = obj.dop_id
+    add_button = f'<button class="dop-button" data-id="{music_id}">Добавить</button>'
     row_data.append(add_button)
     table_data.append(row_data)
-
 def main(request):
-    """Загрузка музыкальной базы и на главную страницу."""
+    """Загрузка музыкальной базы и на главную страницу"""
     # загрузка статичных объектов
     links = [static("css/main.css")]
     scripts = [static("js/main.js")]
@@ -219,6 +227,10 @@ def main(request):
                     <div class="adaptive">
                         <h4>Моя бибилиотека</h4>
                         <div class="my-library" id="myLibrary">
+                            <div class="whole-library-textarea" style="display: none;" id="myLibraryTextarea">
+                    '''
+    all_data_4 = '''
+                            </div>
                             <button class="button-popup button-slide slide-inside" type="button" id="openMyLibrary">ПОКАЗАТЬ</button>
                         </div>
                         <div class="button-center">
@@ -238,7 +250,66 @@ def main(request):
             </div>
         </div>
                 '''
+
+    # загрузка данных в личную библиотеку на странице
+    user_coll = request.COOKIES.get('user_collection')
+    user = Users.objects.get(nickname=user_coll)
+    client = MongoClient('mongodb://localhost:27017/')
+    db = client[settings.DATABASES['links_mongodb']['NAME']]
+    # получаем список всех коллекций в базе данных
+    collection_names = db.list_collection_names()
+    # проверяем, есть ли нужная коллекция
+    for collection_name in collection_names:
+        if collection_name == user_coll:
+            user_collection = db.get_collection(collection_name)
+            user_doc = user_collection.find_one({"email": user.email})
+            music_entries = user_doc["links"] if "links" in user_doc else []
+            field_order = ['genre', 'author', 'co_author', 'album', 'title']
+            table_data_2 = []
+            for entry in music_entries:
+                # тут код обработки данных отличается, так как в mongodb всё хранится в виде словарей
+                row_data_2 = [entry.get(field, "") for field in field_order]  # используем obj[field] или obj.get(field) (словарный доступ)
+                music_id_2 = entry.get('dop_id')  # используем словарный доступ к 'dop_id'
+                del_button = f'<button class="del-button" data-id="{music_id_2}">Удалить</button>'
+                row_data_2.append(del_button)
+                table_data_2.append(row_data_2)
+
     data = {"links": links, "scripts": scripts, "title": title, "videos": videos, "all_data_1": all_data_1,
-            "all_data_2": all_data_2, "field_data": field_names, "table_data": table_data, "all_data_3": all_data_3}
+            "all_data_2": all_data_2, "field_data": field_names, "table_data": table_data, "all_data_3": all_data_3,
+            "field_data_2": field_order, "table_data_2": table_data_2, "all_data_4": all_data_4}
     return render(request, "main.html", context=data)
 # -------------------- КОНЕЦ КОСТЫЛЯ --------------------
+
+
+@csrf_exempt
+def add_to_library(request):
+    """Добавление записи в библиотеку при каждом нажатии кнопки"""
+    if request.method == "POST":
+        user_coll = request.COOKIES.get('user_collection')  # Получаем значение cookie с коллекцией пользователя
+        user = Users.objects.get(nickname=user_coll)
+        # try:
+        # загружаем json c id, ищем нужную запись
+        data = json.loads(request.body)
+        music_id = data.get('music_id')
+        music = MusicBase.objects.get(dop_id=music_id)
+        with MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host']) as client:
+            db = client[settings.DATABASES['links_mongodb']['NAME']]
+            # user_collection = db.get_collection(user_coll)
+            user_collection = db[user_coll]
+            user_collection.update_one(
+                {"email": user.email},
+                {"$push": {"links": {
+                    "dop_id": music.dop_id,
+                    "genre": music.genre,
+                    "author": music.author,
+                    "co_author": music.co_author,
+                    "album": music.album,
+                    "title": music.title
+                }}}
+            )
+        return JsonResponse({'status': 'success', 'message': f'Получили id = {music_id} и коллекцию = {user_coll}, успешно добавили запись!'})
+        # except Exception as e:
+            # print(f"Error: {str(e)}")  # эта хрень пустая (ошибка есть, но какая - хз))))))))
+            # return JsonResponse({'status': 'error', 'message': f'{str(e)}'})  # ошибка-невидимка, прикольно)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Разрешены только POST запросы!'})

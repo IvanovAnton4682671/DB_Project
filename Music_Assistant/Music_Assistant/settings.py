@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',  # дебаггер (выезжаем на охоту за ошибочками в функции add_to_library)
     'corsheaders',  # cors-заголовки (чтобы агенту пользователя можно было использовать домен, отличный от домена по-умолчанию)
     'users_core',
     'music_core',
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',  # тоже для дебаггера
     'corsheaders.middleware.CorsMiddleware',  # cors-заголовки
 ]
 
@@ -155,3 +157,8 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'users_core/static')]
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ip, с которого будет работать django_toolbar
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
