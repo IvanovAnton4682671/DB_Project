@@ -21,6 +21,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path("save_delete_from_library", views.save_delete_from_library, name="save_delete_from_library"),
+    path("del-from-library/", views.del_from_library, name="del_from_library"),
+    path("save_to_library", views.save_to_library, name="save_to_library"),
     path("add-to-library/", views.add_to_library, name="add_to_library"),
     path("main", views.main, name="main"),
     path("form_reg_sending", views.form_reg_sending, name="form_reg_sending"),

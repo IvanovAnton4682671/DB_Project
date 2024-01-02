@@ -59,6 +59,13 @@
     {% autoescape off %}
     {{ all_data_3 }}
     {% endautoescape %}
+    <form action="save_to_library" method="POST" id="saveToLibrary">
+        {% csrf_token %}
+        <button class="button-popup button-slide slide-inside" style="display: none; margin-left: 20px;" type="submit" id="saveAddToLibrary">СОХРАНИТЬ</button>
+    </form>
+    {% autoescape off %}
+    {{ all_data_4 }}
+    {% endautoescape %}
     {% autoescape off %}
     <table>
         <tr>
@@ -76,7 +83,14 @@
     </table>
     {% endautoescape %}
     {% autoescape off %}
-    {{ all_data_4 }}
+    {{ all_data_5 }}
+    {% endautoescape %}
+    <form action="save_delete_from_library" method="POST" id="deleteFromLibrary">
+        {% csrf_token %}
+        <button class="button-popup button-slide slide-inside" style="display: none; margin-left: 20px;" type="submit" id="saveDeleteFromLibrary">СОХРАНИТЬ</button>
+    </form>
+    {% autoescape off %}
+    {{ all_data_6 }}
     {% endautoescape %}
 </body>
 </html>

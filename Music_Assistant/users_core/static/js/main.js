@@ -1,11 +1,13 @@
 var btnOpWhlLib = document.getElementById('openWholeLibrary');
 var btnClWhlLib = document.getElementById('closeWholeLibrary');
+var btnSaveLib = document.getElementById('saveAddToLibrary');
 var whlLib = document.getElementById('wholeLibrary');
 var whlLibText = document.getElementById('wholeLibraryTextarea');
 
 btnOpWhlLib.addEventListener('click', function(event) {
     btnOpWhlLib.style.display = 'none';
     btnClWhlLib.style.display = 'block';
+    btnSaveLib.style.display = 'block';
     whlLib.style.animation = 'stretching 0.5s forwards';
     whlLibText.style.display = 'block';
     event.stopPropagation();
@@ -14,6 +16,7 @@ btnOpWhlLib.addEventListener('click', function(event) {
 btnClWhlLib.addEventListener('click', function(event) {
     btnOpWhlLib.style.display = 'block';
     btnClWhlLib.style.display = 'none';
+    btnSaveLib.style.display = 'none';
     whlLib.style.animation = 'compression 0.5s forwards';
     whlLibText.style.display = 'none';
     event.stopPropagation();
@@ -21,12 +24,14 @@ btnClWhlLib.addEventListener('click', function(event) {
 
 var btnOpMyLib = document.getElementById('openMyLibrary');
 var btnClMyLib = document.getElementById('closeMyLibrary');
+var btnDeleteLib = document.getElementById('saveDeleteFromLibrary');
 var myLib = document.getElementById('myLibrary');
 var myLibText = document.getElementById('myLibraryTextarea');
 
 btnOpMyLib.addEventListener('click', function(event) {
     btnOpMyLib.style.display = 'none';
     btnClMyLib.style.display = 'block';
+    btnDeleteLib.style.display = 'block';
     myLib.style.animation = 'stretching 0.5s forwards';
     myLibText.style.display = 'block';
     event.stopPropagation();
@@ -35,6 +40,7 @@ btnOpMyLib.addEventListener('click', function(event) {
 btnClMyLib.addEventListener('click', function(event) {
     btnOpMyLib.style.display = 'block';
     btnClMyLib.style.display = 'none';
+    btnDeleteLib.style.display = 'none';
     myLib.style.animation = 'compression 0.5s forwards';
     myLibText.style.display = 'none';
     event.stopPropagation();
@@ -64,48 +70,6 @@ btnClRecLib.addEventListener('click', function(event) {
         sendAddToLibraryRequest(musicId);
     });
 });*/
-
-// вспомогательная функция для проверки и обновления состояние кнопки
-function updateLibraryButton(musicId, button, adding = true) {
-    button.disabled = true; // блокируем кнопку
-    button.innerText = adding ? 'Добавление...' : 'Удаление...'; // опционально меняем текст кнопки
-
-    // выбор соответствующего URL и функции обработки в зависимости от операции
-    const url = adding ? '/add-to-library/' : '/remove-from-library/';
-    const processResponse = adding
-        ? () => { button.innerText = 'Добавлено'; button.disabled = true; }
-        : () => { button.innerText = 'Удалено'; button.remove(); };
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify({ 'music_id': musicId })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log(data);
-        processResponse(); // вызываем функцию для обработки ответа
-    })
-    .catch(e => {
-        console.log('Ошибка:', e);
-        button.innerText = adding ? 'Ошибка добавления' : 'Ошибка удаления';
-    })
-    .finally(() => {
-        // если кнопку нужно снова активировать (только для добавления), делаем это здесь:
-        if (adding) {
-            button.disabled = false;
-            button.innerText = 'Добавить';
-        }
-    });
-}
 
 function getCookie(name) {
     let cookieValue = null;
@@ -146,39 +110,43 @@ function sendAddToLibraryRequest(musicId) {
     });
 }
 
+function sendDeleteFromLibraryRequest(musicId) {
+    fetch('/del-from-library/', { // URL, по которому Django обрабатывает POST-запросы для добавления записи
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // CSRF токен, чтобы Django принял POST-запрос
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ 'music_id': musicId })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data); // обработка данных полученных от сервера
+    })
+    .catch(e => {
+        console.log('Error:', e);
+    });
+}
+
 // делегирование событий (идёт прослушка на клик на всём документе, и только потом проверка на принадлежность
 // к классу dop-button)
-// временно комментим и тестируем блокировку кликов во время выполнения запросов
-/*document.addEventListener('click', function(event) {
+document.addEventListener('click', function(event) {
     if (event.target.classList.contains('dop-button')) {
         console.log('функция отрабатывает');
         const musicId = event.target.getAttribute('data-id');
         sendAddToLibraryRequest(musicId);
         event.target.style.display = 'none';
     }
-});*/
-
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('dop-button') && !event.target.disabled) {
-        console.log('Функция отправки запроса отрабатывает');
+    if (event.target.classList.contains('del-button')) {
+        console.log('эта часть тоже отрабатывает');
         const musicId = event.target.getAttribute('data-id');
-        event.target.disabled = true; // отключаем кнопку во избежание повторного нажатия
-        event.target.innerText = 'Добавление...'; // опционально можно сменить текст кнопки
-        sendAddToLibraryRequest(musicId)
-            .then(data => {
-                console.log(data); // обработка данных полученных от сервера
-                // код обработки успешного добавления, например:
-                event.target.innerText = 'Добавлено';
-                event.target.disabled = true; // если нужно, чтобы кнопка осталась неактивной
-            })
-            .catch(e => {
-                console.log('Error:', e);
-                event.target.innerText = 'Ошибка';
-            })
-            .finally(() => {
-                // если кнопку нужно снова включить, делаем это здесь:
-                // event.target.disabled = false;
-                // event.target.innerText = 'Добавить';
-            });
+        sendDeleteFromLibraryRequest(musicId);
+        event.target.style.display = 'none';
     }
 });
