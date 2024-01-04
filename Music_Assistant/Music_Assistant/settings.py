@@ -41,8 +41,6 @@ INSTALLED_APPS = [
     'debug_toolbar',  # дебаггер (выезжаем на охоту за ошибочками в функции add_to_library)
     'corsheaders',  # cors-заголовки (чтобы агенту пользователя можно было использовать домен, отличный от домена по-умолчанию)
     'users_core',
-    'music_core',
-    'music_links_core',
 ]
 
 MIDDLEWARE = [

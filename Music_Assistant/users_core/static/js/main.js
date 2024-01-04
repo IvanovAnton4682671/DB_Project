@@ -48,18 +48,26 @@ btnClMyLib.addEventListener('click', function(event) {
 
 var btnOpRecLib = document.getElementById('openRecomendationLibrary');
 var btnClRecLib = document.getElementById('closeRecomendationLibrary');
+var btnFindRec = document.getElementById('findOutTheRecomendations');
 var recLib = document.getElementById('recomendationLibrary');
+var recLibText = document.getElementById('recLibraryTextarea');
 
 btnOpRecLib.addEventListener('click', function(event) {
     btnOpRecLib.style.display = 'none';
     btnClRecLib.style.display = 'block';
+    btnFindRec.style.display = 'block';
     recLib.style.animation = 'stretching 0.5s forwards';
+    recLibText.style.display = 'block';
+    event.stopPropagation();
 });
 
 btnClRecLib.addEventListener('click', function(event) {
     btnOpRecLib.style.display = 'block';
     btnClRecLib.style.display = 'none';
+    btnFindRec.style.display = 'none';
     recLib.style.animation = 'compression 0.5s forwards';
+    recLibText.style.display = 'none';
+    event.stopPropagation();
 });
 
 //этот вариант не подходит, так как наши динамический кнопки не сразу попадают в DOM
@@ -134,6 +142,36 @@ function sendDeleteFromLibraryRequest(musicId) {
     });
 }
 
+function sendFindOutRecomendations() {
+    fetch('/find-out-rec/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // CSRF токен, чтобы Django принял POST-запрос
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({'message': 'message_body'})
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(data); // обработка данных полученных от сервера
+        if (data.message) {
+            const formattedMessage = `${data.message}<br />`;
+            recLibText.innerHTML += formattedMessage;
+        } else {
+            console.log('Ответ не содержит message!');
+        }
+    })
+    .catch(e => {
+        console.log('Error:', e);
+    });
+}
+
 // делегирование событий (идёт прослушка на клик на всём документе, и только потом проверка на принадлежность
 // к классу dop-button)
 document.addEventListener('click', function(event) {
@@ -148,5 +186,10 @@ document.addEventListener('click', function(event) {
         const musicId = event.target.getAttribute('data-id');
         sendDeleteFromLibraryRequest(musicId);
         event.target.style.display = 'none';
+    }
+    if (event.target.classList.contains('find-rec')) {
+        console.log('и эта часть отрабатывает');
+        alert("Обработка персональной музыкальной коллекции...");
+        sendFindOutRecomendations();
     }
 });

@@ -92,6 +92,17 @@ video
     font-size: 15px;
 }
 
+.recommendation-library-textarea
+{
+    overflow: auto;
+    margin-left: auto;
+    margin-right: auto;
+    width: 875px;
+    height: 400px;
+    color: white;
+    font-size: 20px;
+}
+
 /*table
 {
     border-collapse: collapse;
@@ -127,6 +138,7 @@ table td
     border: 4px solid rgb(83, 59, 224);
     border-radius: 10px;
     margin: 20px;
+    font-size: 20px;
 }
 
 .button-popup

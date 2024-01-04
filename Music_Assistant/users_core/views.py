@@ -1,3 +1,4 @@
+
 from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import render
@@ -11,6 +12,8 @@ from pymongo import MongoClient
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from collections import Counter
+import random
 
 
 def hi(request):
@@ -248,10 +251,13 @@ def main(request):
                     <div class="adaptive">
                         <h4>Узнать рекомендации</h4>
                         <div class="recomendation-library" id="recomendationLibrary">
+                            <div class="recommendation-library-textarea" style="display: none;" id="recLibraryTextarea">
+                            </div>
                             <button class="button-popup button-slide slide-inside" type="button" id="openRecomendationLibrary">ПОКАЗАТЬ</button>
                         </div>
                         <div class="button-center">
                             <button class="button-popup button-slide slide-inside" style="display: none;" type="button" id="closeRecomendationLibrary">ЗАКРЫТЬ</button>
+                            <button class="button-popup button-slide slide-inside find-rec" style="display: none; margin-left: 20px;" type="button" id="findOutTheRecomendations">УЗНАТЬ РЕКОМЕНДАЦИИ</button>
                         </div>
                     </div>
                 </div>
@@ -378,3 +384,65 @@ def save_delete_from_library(request):
         return main(request)
     else:
         return HttpResponseBadRequest("Разрешены только POST запросы!")
+
+
+@csrf_exempt
+def find_out_rec(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        user_coll = request.COOKIES.get("user_collection")
+        user = Users.objects.get(nickname=user_coll)
+        with MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host']) as client:
+            db = client[settings.DATABASES['links_mongodb']['NAME']]
+            user_collection = db[user_coll]  # была ошибка, использование названия переменной user_coll как строка
+            user_doc = user_collection.find_one({"email": user.email})
+
+            # список для хранения всех авторов в самом популярном жанре
+            authors_in_genre = []
+            # словарь для связи авторов и их альбомов
+            authors_albums = {}
+
+            music_entries = user_doc["links"]
+            genre_counter = Counter()
+            for entry in music_entries:
+                genre = entry.get("genre", "").title()
+                author = entry.get("author")
+                album = entry.get("album", "-нет-")
+                if genre:
+                    genre_counter[genre] += 1
+                    if genre_counter.most_common(1)[0][0] == genre:  # если жанр совпадает с самым популярным
+                        authors_in_genre.append(author)
+                        if author not in authors_albums or authors_albums[author] == "-нет-":
+                            authors_albums[author] = album
+
+            if not genre_counter:
+                recommended_genre = "мы не нашли достаточно данных для рекомендации"
+                result_message = "Рекомендации: К сожалению, у нас недостаточно данных для создания рекомендаций."
+            else:
+                recommended_genre = genre_counter.most_common(1)[0][0]
+                author_counter = Counter(authors_in_genre)
+                if not author_counter:
+                    recommended_author = "не определён"
+                else:
+                    recommended_author = author_counter.most_common(1)[0][0]
+
+                # исключаем самого популярного автора из списка для выбора рекомендации
+                other_authors = [author for author in authors_in_genre if author != recommended_author]
+                new_recommended_author = random.choice(other_authors) if other_authors else "не определены"
+
+                # выбираем случайный альбом по рекомендованному автору, если возможно
+                recommended_album = random.choice([album for author, album in authors_albums.items() if
+                                                   author == new_recommended_author and album != "-нет-"]) if new_recommended_author != "не определены" else "не определены"
+
+                result_message = f"""
+
+                                    Рекомендации:
+                                    Так как вы любите слушать музыку в жанре '{recommended_genre}', и у вас много треков от '{recommended_author}',
+                                    предлагаем послушать '{new_recommended_author}'. Мы выбрали для вас альбом '{recommended_album}'.
+
+                                    """
+
+            response_data = {"status": "success", "message": result_message.strip()}
+            return JsonResponse(response_data)
+    else:
+        return JsonResponse({"status": "error", "message": "Разрешены только POST запросы!"})

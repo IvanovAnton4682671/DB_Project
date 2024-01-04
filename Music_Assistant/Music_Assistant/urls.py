@@ -21,6 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    path("find-out-rec/", views.find_out_rec, name="find_out_rec"),
     path("save_delete_from_library", views.save_delete_from_library, name="save_delete_from_library"),
     path("del-from-library/", views.del_from_library, name="del_from_library"),
     path("save_to_library", views.save_to_library, name="save_to_library"),
