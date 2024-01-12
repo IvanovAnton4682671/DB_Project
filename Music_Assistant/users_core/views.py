@@ -58,11 +58,6 @@ def form_reg_sending(request):
         email_regex = r"^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,40}$"
         password_regex = r"^(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])(.{8,})$"
 
-        # почему-то сессии в этой функции вызывают непонятную ошибку, связанную с django_sessions
-        # загрузка данных в сессию для дальнейшей работы
-        # request.session["user_nickname"] = nickname
-        # request.session["user_email"] = email
-
         # статичные объекты
         links = [static("css/hi.css")]
         scripts = [static("js/popup.js")]
@@ -99,10 +94,6 @@ def form_reg_sending(request):
                 user = Users(nickname=nickname, email=email, password=sha224)
                 user.save()
 
-                # не работает из-за переадресации
-                # messages.add_message(request, messages.INFO, f"{email}")
-                # messages.info(request, email, extra_tags="INFO")
-
                 # создание отдельной коллекции для каждого пользователя - очень нестандартная вещь
                 # для классической работы MongoDB с Django, придётся работать через pymongo
                 client = MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host'])
@@ -138,6 +129,7 @@ def form_aut_sending(request):
         password = request.POST.get("aut-passwordInput", "-undefined-")
         sha224 = hashlib.sha224(password.encode("utf-8")).hexdigest()
 
+        # статичные объекты
         links = [static("css/hi.css")]
         scripts = [static("js/popup.js")]
         title = "Добро пожаловать!"
@@ -169,14 +161,6 @@ def form_aut_sending(request):
             messages.success(request, "Вы успешно авторизовались!")
             response = render(request, "hi_redirect.html", context=data)
             response.set_cookie("user_collection", existing_user.nickname)  # запоминаем ник для работы
-            # не работают из-за переадресации
-            # messages.add_message(request, messages.INFO, f"{email}")
-
-            # та же проблема с сессиями
-            # загрузка в сессию для дальнейшей работы
-            # nickname = existing_user.nickname
-            # request.session["user_nickname"] = nickname
-            # request.session["user_email"] = email
             return response
         except Users.DoesNotExist:
             messages.error(request, "Неверная почта или пароль!")
@@ -184,25 +168,12 @@ def form_aut_sending(request):
     else:
         return HttpResponseBadRequest("Разрешены только POST-запросы!")
 
-# -------------------- КОСТЫЛЬ --------------------
-# это ужасный костыль, который относится только к функции main и общей музыкальной базе
-# проблема в том, что в mongodb по данным ходит итератор (курсор)
-# если этот запрос к бд реализовать в функции main, то он будет происходить каждый раз при заходе на /main
-# а проблема в том, что курсор не возвращается в начало сам, и в ручную его туда перетащить в django нельзя
-# и при повторном заходе мы получаем error - чтение пустых данных
-# так что, пока пусть будет так
 
-# ЗАГРУЗКА ДАННЫХ В ОБЩУЮ БИБЛИОТЕКУ НА СТРАНИЦЕ
+# записываем все данные во временное хранилище, чтобы постоянно не обращаться к БД (уменьшение нагрузки)
+# примерно по принципу работы Redis`a
 all_music = []
-# field_names = [field.name for field in MusicBase._meta.fields][2:]
 music_objects = MusicBase.objects.all()
-# table_data = []
 for obj in music_objects:
-    # row_data = [getattr(obj, field) for field in field_names]
-    # music_id = obj.dop_id
-    # add_button = f'<button class="dop-button" data-id="{music_id}">Добавить</button>'
-    # row_data.append(add_button)
-    # table_data.append(row_data)
     all_music.append({"dop_id": obj.dop_id, "genre": obj.genre, "author": obj.author,
                       "co_author": obj.co_author, "album": obj.album, "title": obj.title})
 def main(request):
@@ -311,9 +282,8 @@ def main(request):
             "all_data_4": all_data_4, "field_data_2": field_order, "table_data_2": table_data_2,
             "all_data_5": all_data_5, "all_data_6": all_data_6}
     return render(request, "main.html", context=data)
-# -------------------- КОНЕЦ КОСТЫЛЯ --------------------
 
-
+# тот же принцип Redis`a, храним данные во временном хранилище, а потом одним запросом к БД всё добавляем
 save_music = []
 @csrf_exempt
 def add_to_library(request):
@@ -330,6 +300,7 @@ def add_to_library(request):
         return JsonResponse({'status': 'error', 'message': 'Разрешены только POST запросы!'})
 
 
+# тот самый один запрос к БД и очистка временного хранилища
 def save_to_library(request):
     """Добавляем все записи одним запросом и перезагружаем страницу, чтобы пользователь увидел изменения"""
     if request.method == "POST":
@@ -349,6 +320,7 @@ def save_to_library(request):
         return HttpResponseBadRequest("Разрешены только POST запросы!")
 
 
+# тот же принцип Redis`a, храним данные во временном хранилище, а потом одним запросом к БД всё удаляем
 del_music = []
 @csrf_exempt
 def del_from_library(request):
@@ -365,6 +337,7 @@ def del_from_library(request):
         return JsonResponse({"status": "error", "message": "Разрешены только POST запросы!"})
 
 
+# тот самый один запрос к БД и очистка временного хранилища
 def save_delete_from_library(request):
     """Удаляем записи одним запросом и перезагружаем страницу, чтобы пользователь увидел изменения"""
     if request.method == "POST":
@@ -386,8 +359,16 @@ def save_delete_from_library(request):
         return HttpResponseBadRequest("Разрешены только POST запросы!")
 
 
+# алгоритм работает следующим образом:
+# сначала подсчитывает записи по жанрам и определяет самый популярный
+# затем, в самом популярном жанре определяет самого популярного автора
+# проверяет, если таких авторов несколько - выбирает одного случайно, а других запоминает
+# проверяет, есть ли у самого популярного автора соавторы в записях
+# рекомендует другого автора в самом популярном жанре и случайно выбирает альбом
+# так же, может указать автора из другого жанра, если у него будет много со-авторства
 @csrf_exempt
 def find_out_rec(request):
+    """Алгоритм рекомендации, который анализирует личную коллекцию пользователя"""
     if request.method == "POST":
         data = json.loads(request.body)
         user_coll = request.COOKIES.get("user_collection")
@@ -428,18 +409,19 @@ def find_out_rec(request):
 
                 # исключаем самого популярного автора из списка для выбора рекомендации
                 other_authors = [author for author in authors_in_genre if author != recommended_author]
+
                 new_recommended_author = random.choice(other_authors) if other_authors else "не определены"
 
                 # выбираем случайный альбом по рекомендованному автору, если возможно
-                recommended_album = random.choice([album for author, album in authors_albums.items() if
-                                                   author == new_recommended_author and album != "-нет-"]) if new_recommended_author != "не определены" else "не определены"
+                albums_to_choose_from = [album for author, album in authors_albums.items()
+                                         if author == new_recommended_author and album != "-нет-"]
+
+                recommended_album = random.choice(albums_to_choose_from) if albums_to_choose_from else "не определены"
 
                 result_message = f"""
-
                                     Рекомендации:
                                     Так как вы любите слушать музыку в жанре '{recommended_genre}', и у вас много треков от '{recommended_author}',
                                     предлагаем послушать '{new_recommended_author}'. Мы выбрали для вас альбом '{recommended_album}'.
-
                                     """
 
             response_data = {"status": "success", "message": result_message.strip()}

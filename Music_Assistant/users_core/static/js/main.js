@@ -70,15 +70,6 @@ btnClRecLib.addEventListener('click', function(event) {
     event.stopPropagation();
 });
 
-//этот вариант не подходит, так как наши динамический кнопки не сразу попадают в DOM
-/*document.querySelectorAll('.dop-button').forEach(button => {
-    button.addEventListener('click', function() {
-        console.log('функция отрабатывает!');
-        const musicId = this.getAttribute('data-id');
-        sendAddToLibraryRequest(musicId);
-    });
-});*/
-
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -143,7 +134,7 @@ function sendDeleteFromLibraryRequest(musicId) {
 }
 
 function sendFindOutRecomendations() {
-    fetch('/find-out-rec/', {
+    fetch('/find-out-rec/', { // URL, по которому Django обрабатывает POST-запросы для добавления записи
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -173,22 +164,19 @@ function sendFindOutRecomendations() {
 }
 
 // делегирование событий (идёт прослушка на клик на всём документе, и только потом проверка на принадлежность
-// к классу dop-button)
+// к классу dop-button/del-button/find-rec)
 document.addEventListener('click', function(event) {
     if (event.target.classList.contains('dop-button')) {
-        console.log('функция отрабатывает');
         const musicId = event.target.getAttribute('data-id');
         sendAddToLibraryRequest(musicId);
         event.target.style.display = 'none';
     }
     if (event.target.classList.contains('del-button')) {
-        console.log('эта часть тоже отрабатывает');
         const musicId = event.target.getAttribute('data-id');
         sendDeleteFromLibraryRequest(musicId);
         event.target.style.display = 'none';
     }
     if (event.target.classList.contains('find-rec')) {
-        console.log('и эта часть отрабатывает');
         alert("Обработка персональной музыкальной коллекции...");
         sendFindOutRecomendations();
     }

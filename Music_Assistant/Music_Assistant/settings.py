@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'debug_toolbar',  # дебаггер (выезжаем на охоту за ошибочками в функции add_to_library)
+    'debug_toolbar',  # дебаггер
     'corsheaders',  # cors-заголовки (чтобы агенту пользователя можно было использовать домен, отличный от домена по-умолчанию)
     'users_core',
 ]
