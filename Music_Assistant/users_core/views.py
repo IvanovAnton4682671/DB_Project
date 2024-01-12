@@ -359,70 +359,83 @@ def save_delete_from_library(request):
         return HttpResponseBadRequest("Разрешены только POST запросы!")
 
 
-# алгоритм работает следующим образом:
-# сначала подсчитывает записи по жанрам и определяет самый популярный
-# затем, в самом популярном жанре определяет самого популярного автора
-# проверяет, если таких авторов несколько - выбирает одного случайно, а других запоминает
-# проверяет, есть ли у самого популярного автора соавторы в записях
-# рекомендует другого автора в самом популярном жанре и случайно выбирает альбом
-# так же, может указать автора из другого жанра, если у него будет много со-авторства
 @csrf_exempt
 def find_out_rec(request):
-    """Алгоритм рекомендации, который анализирует личную коллекцию пользователя"""
     if request.method == "POST":
         data = json.loads(request.body)
         user_coll = request.COOKIES.get("user_collection")
         user = Users.objects.get(nickname=user_coll)
+
         with MongoClient(settings.DATABASES['links_mongodb']['CLIENT']['host']) as client:
             db = client[settings.DATABASES['links_mongodb']['NAME']]
-            user_collection = db[user_coll]  # была ошибка, использование названия переменной user_coll как строка
+            user_collection = db[user_coll]
             user_doc = user_collection.find_one({"email": user.email})
 
-            # список для хранения всех авторов в самом популярном жанре
-            authors_in_genre = []
-            # словарь для связи авторов и их альбомов
-            authors_albums = {}
-
-            music_entries = user_doc["links"]
+            # определяем самый популярный жанр
             genre_counter = Counter()
-            for entry in music_entries:
+            for entry in user_doc["links"]:
                 genre = entry.get("genre", "").title()
-                author = entry.get("author")
-                album = entry.get("album", "-нет-")
                 if genre:
                     genre_counter[genre] += 1
-                    if genre_counter.most_common(1)[0][0] == genre:  # если жанр совпадает с самым популярным
-                        authors_in_genre.append(author)
-                        if author not in authors_albums or authors_albums[author] == "-нет-":
-                            authors_albums[author] = album
 
             if not genre_counter:
-                recommended_genre = "мы не нашли достаточно данных для рекомендации"
-                result_message = "Рекомендации: К сожалению, у нас недостаточно данных для создания рекомендаций."
+                return JsonResponse({
+                    "status": "error",
+                    "message": "Не достаточно данных для рекомендации."
+                })
+
+            # получаем самый популярный жанр
+            recommended_genre = genre_counter.most_common(1)[0][0]
+
+            # находим всех авторов и альбомы этого жанра
+            authors_in_genre = []
+            authors_albums = {}
+            for entry in user_doc["links"]:
+                if entry.get("genre", "").title() == recommended_genre:
+                    author = entry.get("author")
+                    album = entry.get("album", None)  # используем None вместо '-нет-'
+                    authors_in_genre.append(author)
+                    if album:
+                        authors_albums.setdefault(author, set()).add(
+                            album)  # используем set для хранения альбомов без повторений
+
+            author_counter = Counter(authors_in_genre)
+            if not author_counter:
+                return JsonResponse({
+                    "status": "error",
+                    "message": "Не найдено авторов в самом популярном жанре."
+                })
+
+            # находим самого популярного автора в этом жанре
+            recommended_author = author_counter.most_common(1)[0][0]
+
+            # исключаем самого популярного автора для рекомендации других авторов
+            other_authors = [author for author in authors_in_genre if author != recommended_author]
+
+            # если нет других авторов, выводим сообщение
+            if not other_authors:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"Не найдено других авторов в жанре {recommended_genre}."
+                })
+
+            new_recommended_author = random.choice(other_authors)
+
+            recommended_album = None
+            # проверяем, есть ли у нового рекомендуемого автора альбомы
+            if new_recommended_author in authors_albums and authors_albums[new_recommended_author]:
+                recommended_album = random.choice(list(authors_albums[new_recommended_author]))
+
+            # создаём итоговый ответ
+            if recommended_album and recommended_album != "-нет-":
+                result_message = (f"Рекомендации: Так как вы любите слушать музыку в жанре '{recommended_genre}', "
+                                  f"и у вас много треков от '{recommended_author}', "
+                                  f"предлагаем послушать '{new_recommended_author}'. "
+                                  f"Мы выбрали для вас альбом '{recommended_album}'.")
             else:
-                recommended_genre = genre_counter.most_common(1)[0][0]
-                author_counter = Counter(authors_in_genre)
-                if not author_counter:
-                    recommended_author = "не определён"
-                else:
-                    recommended_author = author_counter.most_common(1)[0][0]
-
-                # исключаем самого популярного автора из списка для выбора рекомендации
-                other_authors = [author for author in authors_in_genre if author != recommended_author]
-
-                new_recommended_author = random.choice(other_authors) if other_authors else "не определены"
-
-                # выбираем случайный альбом по рекомендованному автору, если возможно
-                albums_to_choose_from = [album for author, album in authors_albums.items()
-                                         if author == new_recommended_author and album != "-нет-"]
-
-                recommended_album = random.choice(albums_to_choose_from) if albums_to_choose_from else "не определены"
-
-                result_message = f"""
-                                    Рекомендации:
-                                    Так как вы любите слушать музыку в жанре '{recommended_genre}', и у вас много треков от '{recommended_author}',
-                                    предлагаем послушать '{new_recommended_author}'. Мы выбрали для вас альбом '{recommended_album}'.
-                                    """
+                result_message = (f"Рекомендации: Так как вы любите слушать музыку в жанре '{recommended_genre}', "
+                                  f"и у вас много треков от '{recommended_author}', "
+                                  f"предлагаем послушать '{new_recommended_author}'.")
 
             response_data = {"status": "success", "message": result_message.strip()}
             return JsonResponse(response_data)
